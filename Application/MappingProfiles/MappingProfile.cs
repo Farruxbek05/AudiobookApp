@@ -40,7 +40,8 @@ public class MappingProfile : Profile
 
         CreateMap<CreateUserModel, User>().ReverseMap();
         CreateMap<LoginUserModel, User>().ReverseMap();
-        CreateMap<User, User>().ReverseMap();
+        CreateMap<User, ProfileDTO>().ReverseMap();
+        CreateMap<CreateUserModel, TemporaryUser>().ReverseMap();
     }
 }
 

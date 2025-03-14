@@ -79,9 +79,9 @@ public class UsersController : ControllerBase
         return Ok(await _userService.ValidateAndRefreshToken(id, refreshToken));
     }
     [HttpGet("GetUserProfile")]
-    public async Task<ApiResult<IEnumerable<User>>> GetUserProfileAsync()
+    public async Task<ApiResult<ProfileDTO>> GetUserProfileAsync(Guid userid)
     {
-        var result = await _userService.GetUserProfileAsync();
+        var result = await _userService.GetUserProfileAsync(userid);
         return result;
     }
 }

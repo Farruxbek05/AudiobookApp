@@ -4,7 +4,7 @@ namespace Domain.Entity;
 
 public class Subscription : BaseEntity, IAuditedEntity
 {
-    public string Type { get; set; } = string.Empty;
+    public string PlanName { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int DurationInDays { get; set; }
     public string? CreatedBy { get; set; }

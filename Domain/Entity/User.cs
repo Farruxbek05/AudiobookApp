@@ -8,7 +8,7 @@ public class User : BaseEntity
     public UserStatus Status { get; set; } = UserStatus.Inactive;
     public string PasswordHash { get; set; } = null!;
     public string Email { get; set; } = null!;
-    public string? PhoneNumber { get; set; }
+    public DateTime DateOfBirth { get; set; }
     public string FullName { get; set; } = null!;
     public string Lastname { get; set; } = null!;
     public string Firstname { get; set; } = null!;

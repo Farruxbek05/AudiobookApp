@@ -17,15 +17,40 @@ public class BookmarkController : ControllerBase
     [HttpGet("GetLastPosition/{userId}/{bookId}")]
     public async Task<IActionResult> GetLastPosition(Guid userId, Guid bookId)
     {
+        if (userId == Guid.Empty || bookId == Guid.Empty)
+            return BadRequest(new { message = "Invalid userId or bookId." });
+
         var res = await _bookmarkService.GetLastPositionAsync(userId, bookId);
-        return res.IsSuccess ? Ok(res) : NotFound(res);
+
+        if (res == null)
+            return NotFound(new { message = "No bookmark found for the given user and book." });
+
+        return res.IsSuccess ? Ok(res) : BadRequest(res);
     }
+
 
 
     [HttpPost("SaveLastPosition")]
     public async Task<IActionResult> SaveLastPosition([FromBody] BookmarkUM bookmarkUM)
     {
+        if (bookmarkUM == null)
+            return BadRequest(new { message = "Invalid request data." });
+
+        try
+        {
+            TimeSpan audioTime = TimeSpan.Parse(bookmarkUM.AudioPosition);
+            bookmarkUM.AudioPosition = audioTime.ToString();
+        }
+        catch (Exception)
+        {
+            return BadRequest(new { message = "Invalid audioPosition format. Use HH:mm:ss format." });
+        }
+
         var res = await _bookmarkService.CreateOrUpdateBookmarkAsync(bookmarkUM);
-        return res.IsSuccess ? Ok(res) : BadRequest(res);
+
+        if (res == null)
+            return StatusCode(500, new { message = "Internal server error." });
+
+        return res.Succeeded ? Ok(res) : BadRequest(res);
     }
 }

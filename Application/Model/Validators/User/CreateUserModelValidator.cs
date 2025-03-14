@@ -45,12 +45,6 @@ public class CreateUserModelValidator : AbstractValidator<CreateUserModel>
         return !emailExist;
     }
 
-    private bool PhoneNumberIsUnique(string phoneNumber)
-    {
-        bool phoneNumberExist = _dbContext.Users.Any(u => u.PhoneNumber == phoneNumber);
-        return !phoneNumberExist;
-    }
-
     public static bool IsValidPhoneNumber(string phoneNumber)
     {
         var phoneNumberRegex = new Regex(@"^998\d{9}$", RegexOptions.Compiled);

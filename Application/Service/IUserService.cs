@@ -13,5 +13,5 @@ public interface IUserService
     Task<ApiResult<bool>> VerifyOtpAsync(string code, Guid userId);
     Task<ApiResult<LoginResponseModel>> LoginAsync(LoginUserModel loginModel);
     Task<ApiResult<string>> ValidateAndRefreshToken(Guid id, string refreshToken);
-    Task<ApiResult<IEnumerable<User>>> GetUserProfileAsync();
+    Task<ApiResult<ProfileDTO>> GetUserProfileAsync(Guid id);
 }
