@@ -1,4 +1,4 @@
-﻿namespace Application.Model.Book;
+﻿namespace Application.Model.Books;
 
 public class BookRM : BaseResponceModel
 {

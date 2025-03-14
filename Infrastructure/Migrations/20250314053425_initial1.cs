@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class initial1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,7 +71,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
+                    PlanName = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false),
                     DurationInDays = table.Column<int>(type: "integer", nullable: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -85,6 +85,24 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TemporaryUsers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Firstname = table.Column<string>(type: "text", nullable: false),
+                    Lastname = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    Salt = table.Column<string>(type: "text", nullable: false),
+                    PhotoPath = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TemporaryUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -93,10 +111,11 @@ namespace Infrastructure.Migrations
                     Status = table.Column<int>(type: "integer", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     FullName = table.Column<string>(type: "text", nullable: false),
                     Lastname = table.Column<string>(type: "text", nullable: false),
                     Firstname = table.Column<string>(type: "text", nullable: false),
+                    ProfilePictureUrl = table.Column<string>(type: "text", nullable: true),
                     Salt = table.Column<string>(type: "text", nullable: false),
                     RefreshToken = table.Column<string>(type: "text", nullable: true),
                     RefreshTokenExpireDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
@@ -116,13 +135,13 @@ namespace Infrastructure.Migrations
                     Title = table.Column<string>(type: "text", nullable: false),
                     Author = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     PdfUrl = table.Column<string>(type: "text", nullable: true),
                     AudioUrl = table.Column<string>(type: "text", nullable: true),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
                     CreatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     UpdatedBy = table.Column<string>(type: "text", nullable: true),
-                    UpdatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: true)
+                    UpdatedOn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -131,27 +150,36 @@ namespace Infrastructure.Migrations
                         name: "FK_Books_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "OtpCode",
+                name: "OtpCodes",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Code = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     Attempts = table.Column<int>(type: "integer", nullable: false),
-                    UserId1 = table.Column<Guid>(type: "uuid", nullable: true)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TemporaryUserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OtpCode", x => x.Id);
+                    table.PrimaryKey("PK_OtpCodes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OtpCode_Users_UserId1",
-                        column: x => x.UserId1,
+                        name: "FK_OtpCodes_TemporaryUsers_TemporaryUserId",
+                        column: x => x.TemporaryUserId,
+                        principalTable: "TemporaryUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OtpCodes_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,9 +239,14 @@ namespace Infrastructure.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OtpCode_UserId1",
-                table: "OtpCode",
-                column: "UserId1");
+                name: "IX_OtpCodes_TemporaryUserId",
+                table: "OtpCodes",
+                column: "TemporaryUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OtpCodes_UserId",
+                table: "OtpCodes",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserSessions_UserId",
@@ -228,7 +261,7 @@ namespace Infrastructure.Migrations
                 name: "Bookmarks");
 
             migrationBuilder.DropTable(
-                name: "OtpCode");
+                name: "OtpCodes");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -244,6 +277,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Books");
+
+            migrationBuilder.DropTable(
+                name: "TemporaryUsers");
 
             migrationBuilder.DropTable(
                 name: "Users");

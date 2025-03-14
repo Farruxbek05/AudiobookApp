@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AudiobookDbContext))]
-    [Migration("20250312055459_initial3")]
-    partial class initial3
+    [Migration("20250314054831_initial2")]
+    partial class initial2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,7 +38,7 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CreatedBy")
@@ -154,14 +154,19 @@ namespace Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("UserId1")
+                    b.Property<Guid>("TemporaryUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("TemporaryUserId");
 
-                    b.ToTable("OtpCode");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OtpCodes");
                 });
 
             modelBuilder.Entity("Domain.Entity.Review", b =>
@@ -252,12 +257,12 @@ namespace Infrastructure.Migrations
                     b.Property<int>("DurationInDays")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Type")
+                    b.Property<string>("PlanName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
@@ -270,6 +275,43 @@ namespace Infrastructure.Migrations
                     b.ToTable("Subscriptions");
                 });
 
+            modelBuilder.Entity("Domain.Entity.TemporaryUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Firstname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhotoPath")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TemporaryUsers");
+                });
+
             modelBuilder.Entity("Domain.Entity.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -277,6 +319,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
@@ -297,9 +342,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
                     b.Property<string>("ProfilePictureUrl")
@@ -357,9 +399,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entity.Book", b =>
                 {
-                    b.HasOne("Domain.Entity.Category", null)
+                    b.HasOne("Domain.Entity.Category", "Category")
                         .WithMany("Books")
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("Domain.Entity.Bookmark", b =>
@@ -375,9 +421,17 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entity.OtpCode", b =>
                 {
-                    b.HasOne("Domain.Entity.User", null)
+                    b.HasOne("Domain.Entity.TemporaryUser", null)
                         .WithMany("OtpCodes")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("TemporaryUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entity.User", "User")
+                        .WithMany("OtpCodes")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entity.UserSession", b =>
@@ -394,6 +448,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entity.Category", b =>
                 {
                     b.Navigation("Books");
+                });
+
+            modelBuilder.Entity("Domain.Entity.TemporaryUser", b =>
+                {
+                    b.Navigation("OtpCodes");
                 });
 
             modelBuilder.Entity("Domain.Entity.User", b =>

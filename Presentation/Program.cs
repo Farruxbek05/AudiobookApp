@@ -1,4 +1,5 @@
 using Application;
+using Application.Helpers;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ builder.Services.AddApplication(builder.Environment, builder.Configuration)
 
 builder.Services.AddDbContext<AudiobookDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddAuth(builder.Configuration);
 
 var app = builder.Build();
 using var scope = app.Services.CreateScope();

@@ -12,3 +12,4 @@ public interface ISettingService
     Task<ApiResult<bool>> DeleteSettingAsync(Guid id);
 }
 
+        

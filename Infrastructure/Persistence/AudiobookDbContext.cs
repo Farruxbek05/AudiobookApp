@@ -1,6 +1,7 @@
 ﻿using Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Persistence;
 
@@ -20,11 +21,16 @@ public class AudiobookDbContext : DbContext
     public DbSet<Bookmark> Bookmarks { get; set; }
     public DbSet<Setting> Settings { get; set; }
     public DbSet<UserSession> UserSessions { get; set; }
+    public DbSet<OtpCode> OtpCodes { get; set; }
+    public DbSet<TemporaryUser> TemporaryUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(builder);
+
+       
+
     }
 }
 

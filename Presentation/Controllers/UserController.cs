@@ -1,7 +1,6 @@
 ﻿using Application.Model;
 using Application.Model.User;
 using Application.Service;
-using Domain.Entity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;

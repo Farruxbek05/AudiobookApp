@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Application.Model.Book;
+namespace Application.Model.Books;
 
 public class BookCM
 {

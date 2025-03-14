@@ -1,9 +1,12 @@
 ﻿using Application.Model.Subscription;
 using Application.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
-
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
 public class SubscriptionController : ControllerBase
 {
     private readonly ISubscriptionService _subscriptionService;

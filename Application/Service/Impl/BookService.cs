@@ -1,5 +1,5 @@
 ﻿using Application.Model;
-using Application.Model.Book;
+using Application.Model.Books;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.Entity;

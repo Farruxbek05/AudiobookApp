@@ -1,5 +1,5 @@
 ﻿using Application.Model;
-using Application.Model.Book;
+using Application.Model.Books;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Service;

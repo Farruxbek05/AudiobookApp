@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AudiobookDbContext))]
-    partial class AudiobookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250314053425_initial1")]
+    partial class initial1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -151,10 +154,10 @@ namespace Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("TemporaryUserId")
+                    b.Property<Guid>("TemporaryUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -420,13 +423,15 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Domain.Entity.TemporaryUser", null)
                         .WithMany("OtpCodes")
-                        .HasForeignKey("TemporaryUserId");
+                        .HasForeignKey("TemporaryUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("Domain.Entity.User", "User")
+                    b.HasOne("Domain.Entity.User", null)
                         .WithMany("OtpCodes")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entity.UserSession", b =>

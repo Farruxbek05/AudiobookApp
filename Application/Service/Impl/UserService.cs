@@ -2,7 +2,6 @@
 using Application.Helpers.GenerateJwt;
 using Application.Helpers.PasswordHashers;
 using Application.Model;
-using Application.Model.Subscription;
 using Application.Model.User;
 using Application.Model.Validators.User;
 using AutoMapper;
@@ -67,24 +66,7 @@ public class UserService : IUserService
         user.PasswordHash = _passwordHasher.Encrypt(createUserModel.Password, randomSalt);
         user.FullName = $"{user.Firstname} {user.Lastname}";
         user.Status = UserStatus.New;
-        user.CreatedOn = DateTime.UtcNow;
-
-        // Rasmni saqlash
-        if (createUserModel.ProfilePicture != null)
-        {
-            string uploadsFolder = Path.Combine("wwwroot", "photouploads");
-            Directory.CreateDirectory(uploadsFolder); 
-
-            string uniqueFileName = $"{Guid.NewGuid()}_{createUserModel.ProfilePicture.FileName}";
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await createUserModel.ProfilePicture.CopyToAsync(fileStream);
-            }
-
-            user.ProfilePictureUrl = $"/uploads/{uniqueFileName}";
-        }
+        user.CreatedOn = DateTime.Now;
 
         using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -94,7 +76,7 @@ public class UserService : IUserService
             await _dbContext.SaveChangesAsync();
 
             var session = new UserSession(Guid.NewGuid().ToString(), user.Id);
-            await _dbContext.UserSessions.AddAsync(session);
+            var createdUserSessionId = await _dbContext.UserSessions.AddAsync(session);
             await _dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -108,11 +90,9 @@ public class UserService : IUserService
 
         return ApiResult<CreateUserResponseModel>.Success(new CreateUserResponseModel
         {
-            Id = user.Id,
-            
+            Id = user.Id
         });
     }
-
 
 
     public async Task<ApiResult<string>> ValidateAndRefreshToken(Guid id, string refreshToken)
@@ -239,24 +219,15 @@ public class UserService : IUserService
             return ApiResult<bool>.Failure(new List<string> { "User not found" });
         }
 
-        var unverifiedOtps = user.OtpCodes.Where(otp => otp.Status == OtpCodeStatus.Unverified);
-
-        foreach (var otp in unverifiedOtps)
-        {
-            if (IsExpired(otp.CreatedAt))
-            {
-                otp.Status = OtpCodeStatus.Expired;
-            }
-        }
-        await _dbContext.SaveChangesAsync();
-
-        var lastOtp = unverifiedOtps.OrderByDescending(otp => otp.CreatedAt).FirstOrDefault();
+        var lastOtp = user.OtpCodes
+            .Where(otp => otp.Status == OtpCodeStatus.Unverified)
+            .OrderByDescending(otp => otp.CreatedAt)
+            .FirstOrDefault();
 
         if (lastOtp == null)
         {
             return ApiResult<bool>.Failure(new List<string> { "No active OTP found" });
         }
-
 
         if (IsExpired(lastOtp.CreatedAt))
         {
@@ -265,28 +236,17 @@ public class UserService : IUserService
             return ApiResult<bool>.Failure(new List<string> { "OTP has expired" });
         }
 
-        const int maxAttempts = 5;
-
-        if (lastOtp.Attempts >= maxAttempts)
-        {
-            lastOtp.Status = OtpCodeStatus.Expired;
-            await _dbContext.SaveChangesAsync();
-            return ApiResult<bool>.Failure(new List<string> { "OTP has expired due to multiple failed attempts" });
-        }
-
         if (lastOtp.Code != code)
         {
-            lastOtp.Attempts++;
-            await _dbContext.SaveChangesAsync();
             return ApiResult<bool>.Failure(new List<string> { "Invalid OTP code" });
         }
 
         lastOtp.Status = OtpCodeStatus.Verified;
+        user.Status = User.UserStatus.Active; // ✅ Foydalanuvchini faollashtiramiz
         await _dbContext.SaveChangesAsync();
 
         return ApiResult<bool>.Success(true);
     }
-
 
 
     public async Task<ApiResult<LoginResponseModel>> LoginAsync(LoginUserModel loginModel)
@@ -298,6 +258,11 @@ public class UserService : IUserService
             return ApiResult<LoginResponseModel>.Failure(new List<string> { "User not found" });
         }
 
+        if (user.Status != User.UserStatus.Active)  // ✅ Faqat tasdiqlangan foydalanuvchilar login qila oladi
+        {
+            return ApiResult<LoginResponseModel>.Failure(new List<string> { "OTP verification required" });
+        }
+
         var hashedPassword = _passwordHasher.Encrypt(loginModel.Password, user.Salt);
 
         if (user.PasswordHash != hashedPassword)
@@ -306,7 +271,7 @@ public class UserService : IUserService
         }
 
         var session = new UserSession(Guid.NewGuid().ToString(), user.Id);
-        var createdUserSessionId = await _dbContext.UserSessions.AddAsync(session);
+        await _dbContext.UserSessions.AddAsync(session);
         await _dbContext.SaveChangesAsync();
 
         var accessToken = _jwtTokenHandler.GenerateAccessToken(user, session.Token);
@@ -337,10 +302,14 @@ public class UserService : IUserService
         return Math.Max(0, (int)waitTime.TotalSeconds);
     }
 
-    public async Task<ApiResult<IEnumerable<User>>> GetUserProfileAsync()
+
+    public async Task<ApiResult<ProfileDTO>> GetUserProfileAsync(Guid id)
     {
-        var user = await _dbContext.Users.AsNoTracking().ProjectTo<User>(_mapper.ConfigurationProvider).ToListAsync();
-        return ApiResult<IEnumerable<User>>.Success(user);
+        var user = await _dbContext.Users.AsNoTracking().ProjectTo<ProfileDTO>(_mapper.ConfigurationProvider).FirstOrDefaultAsync(c => c.Id == id);
+        if (user == null)
+            return ApiResult<ProfileDTO>.Failure(new List<string> { "User not found" });
+
+        return ApiResult<ProfileDTO>.Success(user);
     }
 }
 
