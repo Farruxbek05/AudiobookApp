@@ -40,7 +40,7 @@ namespace Application.Helpers
                 options.AddPolicy("RequireAdminRole", policy =>
                             policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
-                options.AddPolicy("AdminOrUsere", policy =>
+                options.AddPolicy("AdminOrUser", policy =>
                 {
                     policy.RequireAssertion(context =>
                         context.User.HasClaim(c => c.Type == ClaimTypes.Role &&

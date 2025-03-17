@@ -14,4 +14,6 @@ public interface IUserService
     Task<ApiResult<LoginResponseModel>> LoginAsync(LoginUserModel loginModel);
     Task<ApiResult<string>> ValidateAndRefreshToken(Guid id, string refreshToken);
     Task<ApiResult<ProfileDTO>> GetUserProfileAsync(Guid id);
+    Task<ApiResult<bool>> ForgotPasswordAsync(string email);
+    Task<ApiResult<bool>> ResetPasswordAsync(ResetPasswordModel model);
 }

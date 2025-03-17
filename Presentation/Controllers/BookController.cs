@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
-[Authorize]
+
 [ApiController]
 [Route("api/[controller]")]
 public class BookController : ControllerBase
@@ -17,40 +17,41 @@ public class BookController : ControllerBase
     }
 
     [HttpGet("GetAllBooks")]
+    [Authorize(Policy = "AdminOrUser")]
     public async Task<IActionResult> GetAllBooks()
     {
         var res = await _bookService.GetAllBooksAsync();
         return Ok(res);
     }
-
+    [Authorize(Policy = "AdminOrUser")]
     [HttpGet("GetBook/{id}")]
     public async Task<IActionResult> GetBook(Guid id)
     {
         var res = await _bookService.GetByIdBookAsync(id);
         return Ok(res);
     }
-
+    [Authorize(Policy = "RequireAdminRole")]
     [HttpPost("CreateBook")]
     public async Task<IActionResult> CreateBook([FromForm] BookCM bookCM)
     {
         var res = await _bookService.CreateBookAsync(bookCM);
         return Ok(res);
     }
-
+    [Authorize(Policy = "RequireAdminRole")]
     [HttpPut("UpdateBook")]
     public async Task<IActionResult> UpdateBook(BookUM bookUM)
     {
         var res = await _bookService.UpdateBookAsync(bookUM);
         return Ok(res);
     }
-
+    [Authorize(Policy = "RequireAdminRole")]
     [HttpDelete("DeleteBook")]
     public async Task<IActionResult> DeleteBook(Guid id)
     {
         var res = await _bookService.DeleteBookAsync(id);
         return Ok(res);
     }
-
+    [Authorize(Policy = "AdminOrUser")]
     [HttpGet("GetAudioFileAsync")]
     public async Task<IActionResult> GetAudio(Guid bookId)
     {
@@ -64,7 +65,7 @@ public class BookController : ControllerBase
 
         return audioFile;
     }
-
+    [Authorize(Policy = "AdminOrUser")]
     [HttpGet("GetPdfFileAsync")]
     public async Task<IActionResult> GetPdf(Guid bookId)
     {

@@ -242,12 +242,11 @@ public class UserService : IUserService
         }
 
         lastOtp.Status = OtpCodeStatus.Verified;
-        user.Status = User.UserStatus.Active; // ✅ Foydalanuvchini faollashtiramiz
+        user.Status = User.UserStatus.Active; 
         await _dbContext.SaveChangesAsync();
 
         return ApiResult<bool>.Success(true);
     }
-
 
     public async Task<ApiResult<LoginResponseModel>> LoginAsync(LoginUserModel loginModel)
     {
@@ -258,7 +257,7 @@ public class UserService : IUserService
             return ApiResult<LoginResponseModel>.Failure(new List<string> { "User not found" });
         }
 
-        if (user.Status != User.UserStatus.Active)  // ✅ Faqat tasdiqlangan foydalanuvchilar login qila oladi
+        if (user.Status != User.UserStatus.Active)
         {
             return ApiResult<LoginResponseModel>.Failure(new List<string> { "OTP verification required" });
         }
@@ -288,6 +287,66 @@ public class UserService : IUserService
             Id = user.Id
         });
     }
+
+    public async Task<ApiResult<bool>> ForgotPasswordAsync(string email)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            return ApiResult<bool>.Failure(new List<string> { "User not found" });
+        }
+
+        string tempPassword = GenerateTemporaryPassword();
+        user.ResetPasswordToken = _passwordHasher.Encrypt(tempPassword, user.Salt);
+        user.ResetPasswordTokenExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _dbContext.SaveChangesAsync();
+
+        bool emailSent = await _emailService.SendEmailAsync(user.Email, $"Your temporary password: {tempPassword}");
+
+        return emailSent ? ApiResult<bool>.Success(true) : ApiResult<bool>.Failure(new List<string> { "Failed to send email" });
+    }
+
+    private string GenerateTemporaryPassword()
+    {
+        return new Random().Next(100000, 999999).ToString(); // 6 xonali vaqtinchalik kod
+    }
+
+
+
+
+    public async Task<ApiResult<bool>> ResetPasswordAsync(ResetPasswordModel model)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+        if (user == null)
+        {
+            return ApiResult<bool>.Failure(new List<string> { "User not found" });
+        }
+
+        if (user.ResetPasswordTokenExpiry < DateTime.UtcNow)
+        {
+            return ApiResult<bool>.Failure(new List<string> { "Temporary password expired" });
+        }
+
+        if (user.ResetPasswordToken != _passwordHasher.Encrypt(model.TemporaryPassword, user.Salt))
+        {
+            return ApiResult<bool>.Failure(new List<string> { "Invalid temporary password" });
+        }
+
+        if (model.NewPassword != model.ConfirmPassword)
+        {
+            return ApiResult<bool>.Failure(new List<string> { "Passwords do not match" });
+        }
+
+        user.PasswordHash = _passwordHasher.Encrypt(model.NewPassword, user.Salt);
+        user.ResetPasswordToken = null;
+        user.ResetPasswordTokenExpiry = null;
+
+        await _dbContext.SaveChangesAsync();
+        return ApiResult<bool>.Success(true);
+    }
+
+
 
     public bool IsExpired(DateTimeOffset createdAt) =>
        createdAt.AddSeconds(_userSettings.OtpExpirationTimeInSeconds) < DateTimeOffset.Now;

@@ -350,6 +350,12 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime?>("RefreshTokenExpireDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("ResetPasswordToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ResetPasswordTokenExpiry")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
@@ -359,6 +365,12 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TempPassword")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("TempPasswordExpiry")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("timestamp without time zone");

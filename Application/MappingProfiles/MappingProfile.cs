@@ -42,6 +42,12 @@ public class MappingProfile : Profile
         CreateMap<LoginUserModel, User>().ReverseMap();
         CreateMap<User, ProfileDTO>().ReverseMap();
         CreateMap<CreateUserModel, TemporaryUser>().ReverseMap();
+        CreateMap<ForgotPasswordModel, User>()
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
+
+        CreateMap<ResetPasswordModel, User>()
+            .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.PasswordHash, opt => opt.Ignore());
     }
 }
 
