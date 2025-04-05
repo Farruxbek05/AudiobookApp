@@ -30,7 +30,12 @@ public class BookController : ControllerBase
         var res = await _bookService.GetByIdBookAsync(id);
         return Ok(res);
     }
-    [Authorize(Policy = "RequireAdminRole")]
+    [HttpGet("Search")]
+    public async Task<IActionResult> Searche(string text)
+    {
+        var res = await _bookService.Name(text);
+        return Ok(res);
+    }
     [HttpPost("CreateBook")]
     public async Task<IActionResult> CreateBook([FromForm] BookCM bookCM)
     {

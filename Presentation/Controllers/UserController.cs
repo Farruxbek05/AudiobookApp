@@ -87,10 +87,6 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
     {
         var result = await _userService.ForgotPasswordAsync(model.Email);
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result);
-        }
         return Ok(result);
     }
 
@@ -98,10 +94,6 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
     {
         var result = await _userService.ResetPasswordAsync(model);
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result);
-        }
         return Ok(result);
     }
 

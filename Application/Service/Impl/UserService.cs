@@ -309,7 +309,7 @@ public class UserService : IUserService
 
     private string GenerateTemporaryPassword()
     {
-        return new Random().Next(100000, 999999).ToString(); // 6 xonali vaqtinchalik kod
+        return new Random().Next(100000, 999999).ToString(); 
     }
 
 

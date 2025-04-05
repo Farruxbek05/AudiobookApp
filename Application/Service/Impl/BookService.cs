@@ -93,6 +93,7 @@ public class BookService : IBookService
         return ApiResult<BookRM>.Success(book);
     }
 
+
     public async Task<ApiResult<BookUMResponse>> UpdateBookAsync(BookUM model)
     {
         var book = await _dbContext.Books.FirstOrDefaultAsync(s => s.Id == model.Id);
@@ -192,6 +193,21 @@ public class BookService : IBookService
             return false;
 
         return File.Exists(book.PdfUrl);
+    }
+
+    public async Task<ApiResult<BookRM>> Name(string text)
+    {
+        var book = await _dbContext.Books
+                                     .AsNoTracking()
+                                     .ProjectTo<BookRM>(_mapper.ConfigurationProvider)
+                                     .FirstOrDefaultAsync(c => c.Title == text);
+
+        if (book == null)
+        {
+            return ApiResult<BookRM>.Failure(new List<string> { "Book not found" });
+        }
+
+        return ApiResult<BookRM>.Success(book);
     }
 }
 

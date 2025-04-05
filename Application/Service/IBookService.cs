@@ -8,6 +8,7 @@ public interface IBookService
 {
     Task<ApiResult<BookCMResponse>> CreateBookAsync(BookCM model);
     Task<ApiResult<BookRM>> GetByIdBookAsync(Guid id);
+    Task<ApiResult<BookRM>> Name(string text);
     Task<ApiResult<IEnumerable<BookRM>>> GetAllBooksAsync();
     Task<ApiResult<BookUMResponse>> UpdateBookAsync(BookUM model);
     Task<ApiResult<bool>> DeleteBookAsync(Guid id);
